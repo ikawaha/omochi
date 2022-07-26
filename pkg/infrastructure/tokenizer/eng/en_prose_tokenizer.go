@@ -14,6 +14,10 @@ import (
 
 type EnProseTokenizer struct{}
 
+var enIndexableTokenPOSPrefix = []string{
+	"JJ", "MD", "NN", "PDT", "PRP", "RB", "RPP", "UH", "VB", "WP", "WRB",
+}
+
 func NewEnProseTokenizer() service.Tokenizer {
 	return &EnProseTokenizer{}
 }
@@ -23,13 +27,10 @@ func (tokenizer *EnProseTokenizer) Tokenize(ctx context.Context, content string)
 	if err != nil {
 		return nil, errors.NewError(code.Unknown, err)
 	}
-	EnIndexableTokenPOSPrefix := []string{
-		"JJ", "MD", "NN", "PDT", "PRP", "RB", "RPP", "UH", "VB", "WP", "WRB",
-	}
 	terms := []entities.TermCreate{}
 	for _, token := range doc.Tokens() {
 		indexableToken := false
-		for _, prefix := range EnIndexableTokenPOSPrefix {
+		for _, prefix := range enIndexableTokenPOSPrefix {
 			if strings.HasPrefix(token.Tag, prefix) {
 				indexableToken = true
 			}

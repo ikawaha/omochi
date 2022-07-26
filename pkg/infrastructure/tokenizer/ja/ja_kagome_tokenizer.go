@@ -7,8 +7,17 @@ import (
 	"github.com/YadaYuki/omochi/pkg/domain/service"
 	"github.com/YadaYuki/omochi/pkg/errors"
 	"github.com/ikawaha/kagome-dict/ipa"
+	"github.com/ikawaha/kagome/v2/filter"
 	"github.com/ikawaha/kagome/v2/tokenizer"
 )
+
+var indexable = filter.NewPOSFilter([]filter.POS{
+	{"感動詞"},
+	{"形容詞"},
+	{"動詞"},
+	{"名詞"},
+	{"副詞"},
+}...)
 
 type JaKagomeTokenizer struct {
 	t *tokenizer.Tokenizer
@@ -24,11 +33,9 @@ func NewJaKagomeTokenizer() service.Tokenizer {
 
 func (tokenizer *JaKagomeTokenizer) Tokenize(ctx context.Context, japaneseContent string) (*[]entities.TermCreate, *errors.Error) {
 	tokens := tokenizer.t.Tokenize(japaneseContent)
-	var JaIndexableTokenPOS map[string]bool = map[string]bool{"感動詞": true, "形容詞": true, "動詞": true, "名詞": true, "副詞": true}
-	terms := []entities.TermCreate{}
+	var terms []entities.TermCreate
 	for _, token := range tokens {
-		POS := token.Features()[0]
-		if _, ok := JaIndexableTokenPOS[POS]; ok {
+		if indexable.Match(token.POS()) {
 			terms = append(terms, *entities.NewTermCreate(token.Surface, nil))
 		}
 	}
